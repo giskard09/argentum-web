@@ -24,6 +24,8 @@
   --px:       'Press Start 2P', monospace;
 }
 
+html { font-size: 130%; }
+
 *{ margin:0; padding:0; box-sizing:border-box; }
 
 body {
@@ -643,6 +645,22 @@ footer {
 
   <!-- SUBMIT -->
   <div class="view" id="view-submit">
+
+    <div style="max-width:700px;margin:0 auto 2.5rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;">
+      <div style="flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);padding:1.2rem;text-align:center;">
+        <div style="font-size:0.55rem;color:var(--karma);margin-bottom:0.8rem;">① submit</div>
+        <div style="font-size:0.28rem;color:var(--dim);line-height:2;">Tell us what you did.<br>Any good action counts.</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);padding:1.2rem;text-align:center;">
+        <div style="font-size:0.55rem;color:var(--karma);margin-bottom:0.8rem;">② attest</div>
+        <div style="font-size:0.28rem;color:var(--dim);line-height:2;">Community confirms it.<br>2 attestations to verify.</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);padding:1.2rem;text-align:center;">
+        <div style="font-size:0.55rem;color:var(--karma);margin-bottom:0.8rem;">③ karma</div>
+        <div style="font-size:0.28rem;color:var(--dim);line-height:2;">Your reputation grows<br>on-chain in Arbitrum.</div>
+      </div>
+    </div>
+
     <div class="form-card">
       <div class="form-title">submit an action</div>
       <p style="font-size:0.3rem;color:var(--dim);line-height:2;margin-bottom:1.5rem;">
