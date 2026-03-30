@@ -733,7 +733,7 @@ footer {
 <div id="toast"></div>
 
 <script>
-const API = 'http://localhost:8017';
+const API = 'https://argentum.rgiskard.xyz';
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
 function toast(msg, dur = 3000) {
@@ -775,9 +775,9 @@ function statusBadge(s) {
   return `<span class="badge badge-${s}">${s}</span>`;
 }
 
-function attestBar(count, needed) {
-  const pct = Math.min(100, (count / needed) * 100);
-  return `<div class="attest-bar"><div class="attest-fill" style="width:${pct}%"></div></div>`;
+function attestBar(weight, threshold) {
+  const pct = Math.min(100, (weight / threshold) * 100);
+  return `<div class="attest-bar" title="${weight.toFixed(1)} / ${threshold.toFixed(1)} weight"><div class="attest-fill" style="width:${pct}%"></div></div>`;
 }
 
 function proofLink(url) {
@@ -788,7 +788,9 @@ function proofLink(url) {
 }
 
 function renderCard(a, showAttestBtn = false) {
-  const attCount = a.attestation_count ?? (a.attestations ? a.attestations.length : 0);
+  const totalWeight = a.total_weight ?? (a.attestations ? a.attestations.reduce((s,x) => s + (x.weight||1), 0) : 0);
+  const threshold   = a.weight_threshold ?? 2.0;
+  const attCount    = a.attestation_count ?? (a.attestations ? a.attestations.length : 0);
   return `
   <div class="card" id="action-${a.id}">
     <div class="card-header">
@@ -802,10 +804,10 @@ function renderCard(a, showAttestBtn = false) {
       </div>
     </div>
     <p class="card-desc">${a.description}</p>
-    ${attestBar(attCount, 2)}
+    ${attestBar(totalWeight, threshold)}
     <div class="card-footer">
       <div>
-        <span class="card-meta">${attCount}/2 attestations · ${timeAgo(a.created_at)} · #${a.id}</span>
+        <span class="card-meta">${attCount} witness(es) · weight ${totalWeight.toFixed(1)}/${threshold.toFixed(1)} · ${timeAgo(a.created_at)} · #${a.id}</span>
         ${a.proof ? '<br>' + proofLink(a.proof) : ''}
       </div>
       <div style="display:flex;gap:0.8rem;align-items:center">
@@ -857,7 +859,7 @@ async function loadCommons() {
       : '<div class="empty">no pending actions.</div>';
   } catch(e) {
     document.getElementById('commons-list').innerHTML =
-      '<div class="empty">could not reach argentum-core.<br>check localhost:8017</div>';
+      '<div class="empty">could not reach argentum-core.<br>service may be restarting — try again in a moment.</div>';
   }
 }
 
@@ -928,7 +930,8 @@ async function confirmAttest(e) {
     if (d.verified) {
       toast(`action verified! ${body.attester_name} earned ${d.witness_karma_earned} karma`, 4000);
     } else {
-      toast(`witnessed. ${d.attestations_so_far}/${d.attestations_needed} attestations`);
+      const w = d.total_weight != null ? ` · weight ${d.total_weight.toFixed(1)}/${d.weight_threshold.toFixed(1)}` : '';
+      toast(`witnessed. ${d.attestations_so_far} witness(es)${w}`);
     }
     loadCommons();
   } catch(err) {
