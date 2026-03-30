@@ -115,6 +115,30 @@ nav a:hover, nav a.active { color: var(--silver); }
   font-style: normal;
 }
 
+.hero-cta {
+  margin: 0 auto 2.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-btn {
+  font-family: var(--px);
+  font-size: 0.45rem;
+  color: var(--bg);
+  background: var(--moon);
+  border: none;
+  padding: 0.8rem 1.6rem;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 0 0 18px rgba(122,168,204,0.35);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.hero-btn:hover {
+  background: var(--silver);
+  box-shadow: 0 0 28px rgba(200,212,232,0.5);
+}
+
 .hero-kpi {
   display: flex;
   justify-content: center;
@@ -564,6 +588,12 @@ footer {
     Traces accumulate wisdom.<br>
     <em>Witnessed by community. Verified like open source.</em>
   </p>
+  <div class="hero-cta">
+    <button class="hero-btn" onclick="showView('submit'); document.querySelector('.tabs').scrollIntoView({behavior:'smooth'})">
+      try it — no install needed →
+    </button>
+  </div>
+
   <div class="hero-kpi">
     <div class="kpi">
       <span class="kpi-num" id="kpi-verified">—</span>
@@ -615,6 +645,10 @@ footer {
   <div class="view" id="view-submit">
     <div class="form-card">
       <div class="form-title">submit an action</div>
+      <p style="font-size:0.3rem;color:var(--dim);line-height:2;margin-bottom:1.5rem;">
+        Calls <a href="https://github.com/giskard09/argentum-core" target="_blank" style="color:var(--moon)">argentum-core</a> — open source, Apache 2.0.
+        No login. No wallet required. Karma is earned by the community.
+      </p>
       <form id="submit-form" onsubmit="submitAction(event)">
 
         <div class="form-group">
