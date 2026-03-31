@@ -270,9 +270,16 @@ main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
   border-radius: 2px;
   font-family: var(--px);
 }
-.badge-pending  { background: rgba(200,212,232,0.1); color: var(--dim); }
-.badge-verified { background: rgba(96,200,160,0.15); color: var(--human); border: 1px solid rgba(96,200,160,0.3); }
-.badge-rejected { background: rgba(224,64,96,0.15);  color: var(--red); }
+.badge-pending  { background: rgba(200,212,232,0.1);  color: var(--dim); }
+.badge-verified { background: rgba(96,200,160,0.15);  color: var(--human); border: 1px solid rgba(96,200,160,0.3); }
+.badge-rejected { background: rgba(224,64,96,0.15);   color: var(--red); }
+.badge-disputed { background: rgba(232,200,96,0.15);  color: var(--karma); border: 1px solid rgba(232,200,96,0.4); animation: pulse-disputed 2s infinite; }
+.badge-slashed  { background: rgba(224,64,96,0.2);    color: var(--red);   border: 1px solid rgba(224,64,96,0.4); }
+
+@keyframes pulse-disputed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232,200,96,0); }
+  50%       { box-shadow: 0 0 6px 2px rgba(232,200,96,0.25); }
+}
 
 .proof-link {
   font-size: 0.28rem;
@@ -782,6 +789,29 @@ footer {
   </p>
 </footer>
 
+<div class="modal-overlay" id="dispute-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeDisputeModal()">✕</button>
+    <div class="modal-title">⚖ dispute this action</div>
+    <p style="font-size:0.3rem;color:var(--dim);line-height:2;margin-bottom:1rem">
+      Opens a Kleros arbitration case. Requires karma ≥ 10.<br>
+      Action is frozen until jurors rule. Ruling is final.
+    </p>
+    <form onsubmit="confirmDispute(event)">
+      <input type="hidden" id="dispute-action-id">
+      <div class="form-group">
+        <label class="form-label">your entity id</label>
+        <input type="text" id="dispute-reporter-id" required placeholder="your-entity-id">
+      </div>
+      <div class="form-group">
+        <label class="form-label">reason</label>
+        <textarea id="dispute-reason" rows="3" required placeholder="The proof does not demonstrate the action was actually completed because…" style="font-family:var(--px);font-size:0.32rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.6rem;width:100%;resize:vertical"></textarea>
+      </div>
+      <button type="submit" class="btn-submit" style="margin-top:0.5rem;background:rgba(232,200,96,0.15);color:var(--karma);border:1px solid rgba(232,200,96,0.4)">open dispute</button>
+    </form>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -867,6 +897,12 @@ function renderCard(a, showAttestBtn = false) {
         ${showAttestBtn && a.status === 'pending'
           ? `<button class="attest-btn" onclick="openModal('${a.id}')">witness</button>`
           : ''}
+        ${showAttestBtn && a.status === 'verified'
+          ? `<button class="attest-btn" style="color:var(--karma);border-color:rgba(232,200,96,0.4)" onclick="openDisputeModal('${a.id}')">dispute</button>`
+          : ''}
+        ${a.status === 'disputed'
+          ? `<span style="font-size:0.28rem;color:var(--karma)">⚖ kleros pending</span>`
+          : ''}
       </div>
     </div>
   </div>`;
@@ -892,9 +928,10 @@ async function loadStats() {
 async function loadCommons() {
   loadStats();
   try {
-    const [verified, pending] = await Promise.all([
+    const [verified, pending, disputed] = await Promise.all([
       fetch(`${API}/commons?limit=20`).then(r => r.json()),
-      fetch(`${API}/actions?status=pending&limit=20`).then(r => r.json())
+      fetch(`${API}/actions?status=pending&limit=20`).then(r => r.json()),
+      fetch(`${API}/actions?status=disputed&limit=20`).then(r => r.json())
     ]);
 
     const cl = document.getElementById('commons-list');
@@ -902,9 +939,15 @@ async function loadCommons() {
 
     document.getElementById('commons-count').textContent = verified.length + ' actions';
 
-    cl.innerHTML = verified.length
-      ? verified.map(a => renderCard(a, false)).join('')
-      : '<div class="empty">no verified actions yet.<br>be the first.</div>';
+    const disputedHtml = disputed.length
+      ? `<div class="section-title" style="color:var(--karma);margin-top:1.5rem">⚖ under kleros dispute</div>` +
+        disputed.map(a => renderCard(a, false)).join('')
+      : '';
+
+    cl.innerHTML = (verified.length
+      ? verified.map(a => renderCard(a, true)).join('')
+      : '<div class="empty">no verified actions yet.<br>be the first.</div>')
+      + disputedHtml;
 
     pl.innerHTML = pending.length
       ? pending.map(a => renderCard(a, true)).join('')
@@ -988,6 +1031,40 @@ async function confirmAttest(e) {
     loadCommons();
   } catch(err) {
     toast('error: ' + err.message);
+  }
+}
+
+// ── DISPUTE ────────────────────────────────────────────────────────────────
+function openDisputeModal(actionId) {
+  document.getElementById('dispute-action-id').value = actionId;
+  document.getElementById('dispute-modal').classList.add('open');
+}
+
+function closeDisputeModal() {
+  document.getElementById('dispute-modal').classList.remove('open');
+}
+
+async function confirmDispute(e) {
+  e.preventDefault();
+  const actionId = document.getElementById('dispute-action-id').value;
+  const body = {
+    reporter_id: document.getElementById('dispute-reporter-id').value.trim(),
+    reason:      document.getElementById('dispute-reason').value.trim()
+  };
+
+  try {
+    const r = await fetch(`${API}/action/${actionId}/dispute`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'error');
+    closeDisputeModal();
+    toast(`dispute opened — id: ${d.dispute_id}. action frozen, awaiting kleros ruling.`, 5000);
+    loadCommons();
+  } catch(err) {
+    toast('error: ' + err.message, 4000);
   }
 }
 
