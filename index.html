@@ -586,6 +586,7 @@ footer {
     <li><a href="#" onclick="showView('submit')"  id="tab-submit">submit</a></li>
     <li><a href="#" onclick="showView('trace')"   id="tab-trace">trace</a></li>
     <li><a href="#" onclick="showView('board')"   id="tab-board">leaderboard</a></li>
+    <li><a href="#" onclick="showView('pricing')" id="tab-pricing">pricing</a></li>
   </ul>
   <div class="nav-stats">karma in circulation: <span id="nav-karma">…</span></div>
 </nav>
@@ -628,6 +629,7 @@ footer {
   <button class="tab" onclick="showView('submit')"  id="tabBtn-submit">submit action</button>
   <button class="tab" onclick="showView('trace')"   id="tabBtn-trace">my trace</button>
   <button class="tab" onclick="showView('board')"   id="tabBtn-board">leaderboard</button>
+  <button class="tab" onclick="showView('pricing')" id="tabBtn-pricing">pricing</button>
 </div>
 
 <main>
@@ -745,6 +747,85 @@ footer {
     <div id="trace-result"></div>
   </div>
 
+  <!-- PRICING -->
+  <div class="view" id="view-pricing">
+    <div class="philosophy" style="margin-bottom:2rem">
+      <p class="philosophy-quote">Post-execution accountability infrastructure.<br>Designed for environments where audit trails need to survive<br>the infrastructure that generated them.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;margin-bottom:2.5rem">
+
+      <!-- FREE -->
+      <div class="card" style="border-color:var(--border)">
+        <div style="font-size:0.38rem;color:var(--dim);letter-spacing:0.12em;margin-bottom:0.6rem">FREE</div>
+        <div style="font-size:0.9rem;color:var(--silver);margin-bottom:0.4rem">$0</div>
+        <div style="font-size:0.28rem;color:var(--dim);margin-bottom:1.2rem">/ month</div>
+        <div style="font-size:0.3rem;color:var(--text);line-height:2.2">
+          1,000 trails / month<br>
+          Full action_ref canonicalization<br>
+          Base mainnet anchoring<br>
+          Compatible with SafeAgent,<br>DashClaw, AGT EvidenceAnchor<br>
+          <span style="color:var(--dim)">No credit card required</span>
+        </div>
+        <div style="margin-top:1.2rem;font-size:0.28rem;color:var(--dim);line-height:1.8">For builders evaluating Mycelium Trails in development or staging.</div>
+      </div>
+
+      <!-- PAY AS YOU GO -->
+      <div class="card" style="border-color:var(--moon)">
+        <div style="font-size:0.38rem;color:var(--moon);letter-spacing:0.12em;margin-bottom:0.6rem">PAY-AS-YOU-GO</div>
+        <div style="font-size:0.9rem;color:var(--silver);margin-bottom:0.4rem">$0.003</div>
+        <div style="font-size:0.28rem;color:var(--dim);margin-bottom:1.2rem">/ trail</div>
+        <div style="font-size:0.3rem;color:var(--text);line-height:2.2">
+          No monthly minimum<br>
+          No subscription<br>
+          Same anchoring as Free<br>
+          No rate limits<br>
+          <span style="color:var(--dim)">Billed monthly</span>
+        </div>
+        <div style="margin-top:1.2rem;font-size:0.28rem;color:var(--dim);line-height:1.8">For production integrations ramping volume.</div>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="card" style="border-color:var(--agent)">
+        <div style="font-size:0.38rem;color:var(--agent);letter-spacing:0.12em;margin-bottom:0.6rem">ENTERPRISE</div>
+        <div style="font-size:0.9rem;color:var(--silver);margin-bottom:0.4rem">custom</div>
+        <div style="font-size:0.28rem;color:var(--dim);margin-bottom:1.2rem">&nbsp;</div>
+        <div style="font-size:0.3rem;color:var(--text);line-height:2.2">
+          Dedicated anchor endpoint<br>
+          Custom action_ref encoding<br>
+          Multi-chain anchoring<br>
+          SLA<br>
+          Compliance mapping<br>
+          <span style="color:var(--dim)">EU AI Act · SOC 2 · FCA · ISO 27001 · Basel III</span>
+        </div>
+        <div style="margin-top:1.2rem;font-size:0.28rem;color:var(--dim);line-height:1.8">Priority support.</div>
+      </div>
+
+    </div>
+
+    <!-- FAQ -->
+    <div style="max-width:640px;margin:0 auto">
+      <div style="font-size:0.38rem;color:var(--silver);letter-spacing:0.1em;margin-bottom:1.2rem">what is a trail?</div>
+      <p style="font-size:0.3rem;color:var(--dim);line-height:2.2;margin-bottom:1.8rem">
+        A TrailRecord is a single post-execution anchor: one agent action, one outcome, one immutable record on-chain.
+        Anchoring happens after execution — Mycelium reads the outcome, not the action itself.
+      </p>
+
+      <div style="font-size:0.38rem;color:var(--silver);letter-spacing:0.1em;margin-bottom:1.2rem">can I verify a trail without Mycelium infrastructure?</div>
+      <p style="font-size:0.3rem;color:var(--dim);line-height:2.2;margin-bottom:1.8rem">
+        Yes. Any auditor with the evidence file and the tx hash can verify independently.
+        No access to our runtime required.
+      </p>
+
+      <div style="font-size:0.38rem;color:var(--silver);letter-spacing:0.1em;margin-bottom:1.2rem">how do I start?</div>
+      <p style="font-size:0.3rem;color:var(--dim);line-height:2.2">
+        Free tier starts immediately — no signup.
+        See <a href="https://github.com/giskard09/argentum-core" target="_blank" style="color:var(--moon)">argentum-core</a> for integration docs.
+        Enterprise: <a href="mailto:contact@rgiskard.xyz" style="color:var(--moon)">contact@rgiskard.xyz</a>
+      </p>
+    </div>
+  </div>
+
   <!-- LEADERBOARD -->
   <div class="view" id="view-board">
     <div class="section-header">
@@ -836,6 +917,7 @@ function showView(name) {
 
   if (name === 'commons') loadCommons();
   if (name === 'board')   loadBoard();
+  if (name === 'pricing') {} // static
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
