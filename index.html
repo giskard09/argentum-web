@@ -794,11 +794,10 @@ footer {
           Dedicated anchor endpoint<br>
           Custom action_ref encoding<br>
           Multi-chain anchoring<br>
-          SLA<br>
-          Compliance mapping<br>
+          Audit trail designed for compliance environments<br>
           <span style="color:var(--dim)">EU AI Act · SOC 2 · FCA · ISO 27001 · Basel III</span>
         </div>
-        <div style="margin-top:1.2rem;font-size:0.28rem;color:var(--dim);line-height:1.8">Priority support.</div>
+        <div style="margin-top:1.2rem;font-size:0.28rem;color:var(--dim);line-height:1.8">Priority support — SLA available on request.</div>
         <a href="https://t.me/rama_contact_bot" target="_blank" class="attest-btn" style="display:inline-block;margin-top:1rem;text-decoration:none;color:var(--moon);border-color:rgba(160,112,224,0.4)">contact us →</a>
       </div>
 
@@ -1158,11 +1157,37 @@ async function loadTrace() {
   const el = document.getElementById('trace-result');
   el.innerHTML = '<div class="empty">loading…</div>';
   try {
-    const r = await fetch(`${API}/entity/${encodeURIComponent(id)}/trace`);
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.detail || 'error');
+    const [traceRes, usageRes] = await Promise.all([
+      fetch(`${API}/entity/${encodeURIComponent(id)}/trace`),
+      fetch(`${API}/entity/${encodeURIComponent(id)}/usage`)
+    ]);
+    const d = await traceRes.json();
+    if (!traceRes.ok) throw new Error(d.detail || 'error');
+    const usage = usageRes.ok ? await usageRes.json() : null;
 
     const w = d.wisdom;
+
+    let usageBar = '';
+    if (usage) {
+      const pct = Math.min(usage.percent, 100);
+      const barColor = usage.status === 'critical' ? '#e05a5a'
+                     : usage.status === 'warning'  ? '#e0b05a'
+                     : '#5ae0a0';
+      const msg = usage.status === 'critical'
+        ? `<span style="color:#e05a5a">upgrade to pay-as-you-go →</span>`
+        : usage.status === 'warning'
+        ? `<span style="color:#e0b05a">approaching limit</span>`
+        : '';
+      usageBar = `
+        <div style="margin-top:1rem;font-size:0.26rem;color:var(--dim)">
+          trails this month: ${usage.used} / ${usage.limit}
+          <div style="margin-top:0.3rem;height:6px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px;transition:width 0.4s"></div>
+          </div>
+          ${msg ? `<div style="margin-top:0.3rem">${msg}</div>` : ''}
+        </div>`;
+    }
+
     el.innerHTML = `
       <div class="trace-header">
         <div class="trace-name">
@@ -1175,6 +1200,7 @@ async function loadTrace() {
           <div><span class="trace-stat-num">${w.verified_actions}</span><span class="trace-stat-label">verified actions</span></div>
           <div><span class="trace-stat-num">${w.attestations_given}</span><span class="trace-stat-label">attestations given</span></div>
         </div>` : '<p style="font-size:0.35rem;color:var(--dim)">no wisdom recorded yet</p>'}
+        ${usageBar}
       </div>
       ${d.actions.length ? d.actions.map(a => renderCard(a, false)).join('') : '<div class="empty">no actions submitted</div>'}
     `;
