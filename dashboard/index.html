@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARGENTUM — Usage Dashboard</title>
+<meta name="theme-color" content="#8ab4cc">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #04040c;
+  --surface:  #08081a;
+  --surface2: #0e0e24;
+  --border:   #1e2040;
+  --silver:   #c8d4e8;
+  --moon:     #7aa8cc;
+  --karma:    #e8c860;
+  --agent:    #a070e0;
+  --text:     #d0d8f0;
+  --dim:      #50608a;
+  --ok:       #60c8a0;
+  --warn:     #e8c860;
+  --crit:     #e04060;
+  --px:       'Press Start 2P', monospace;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--px);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 600px 300px at 70% 10%, rgba(122,168,204,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 20% 80%, rgba(200,212,232,0.04) 0%, transparent 70%),
+    radial-gradient(1px 1px at 15% 25%, rgba(200,212,232,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 65% 15%, rgba(232,200,96,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 45%, rgba(200,212,232,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 40%, rgba(232,200,96,0.3) 0%, transparent 100%);
+  pointer-events: none; z-index: 0;
+}
+
+nav {
+  background: rgba(4,4,12,0.92);
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky; top:0; z-index:100;
+  backdrop-filter: blur(12px);
+  position: relative; z-index: 10;
+}
+
+.logo {
+  font-size: 0.65rem;
+  color: var(--silver);
+  text-shadow: 0 0 16px rgba(200,212,232,0.5);
+  letter-spacing: 0.15em;
+}
+.logo span { color: var(--moon); }
+
+nav a {
+  font-size: 0.38rem;
+  color: var(--dim);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+}
+nav a:hover { color: var(--silver); }
+
+main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  position: relative; z-index: 1;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 520px;
+}
+
+.card-header {
+  margin-bottom: 2rem;
+}
+
+.label {
+  font-size: 0.32rem;
+  color: var(--dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+
+.agent-id {
+  font-size: 0.55rem;
+  color: var(--agent);
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.month-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.6rem;
+}
+
+.month-label {
+  font-size: 0.32rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+.month-value {
+  font-size: 0.38rem;
+  color: var(--silver);
+}
+
+/* ── BARRA DE PROGRESO ── */
+.progress-section {
+  margin-bottom: 1.8rem;
+}
+
+.progress-numbers {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.8rem;
+}
+
+.used-count {
+  font-size: 1.1rem;
+  color: var(--silver);
+  line-height: 1;
+}
+
+.used-count span {
+  font-size: 0.4rem;
+  color: var(--dim);
+  margin-left: 0.3rem;
+}
+
+.limit-count {
+  font-size: 0.38rem;
+  color: var(--dim);
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  background: var(--surface2);
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+  background: var(--ok);
+}
+
+.progress-fill.warning { background: var(--warn); }
+.progress-fill.critical { background: var(--crit); box-shadow: 0 0 8px rgba(224,64,96,0.5); }
+
+.progress-pct {
+  text-align: right;
+  font-size: 0.32rem;
+  color: var(--dim);
+  margin-top: 0.5rem;
+}
+
+/* ── STATUS BADGE ── */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 1.6rem;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--ok);
+}
+.status-dot.warning { background: var(--warn); }
+.status-dot.critical {
+  background: var(--crit);
+  box-shadow: 0 0 6px rgba(224,64,96,0.7);
+  animation: pulse 1.4s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.status-text {
+  font-size: 0.36rem;
+  color: var(--silver);
+  letter-spacing: 0.08em;
+}
+
+.status-text.warning { color: var(--warn); }
+.status-text.critical { color: var(--crit); }
+
+/* ── REMAINING ── */
+.remaining-row {
+  font-size: 0.32rem;
+  color: var(--dim);
+  text-align: center;
+  line-height: 1.8;
+}
+
+.remaining-row strong {
+  color: var(--silver);
+}
+
+/* ── FOOTER LINKS ── */
+.card-footer {
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.card-footer a {
+  font-size: 0.3rem;
+  color: var(--dim);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+}
+.card-footer a:hover { color: var(--moon); }
+
+/* ── LOADING / ERROR ── */
+.state-loading,
+.state-error {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.state-loading .spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--moon);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.state-loading p {
+  font-size: 0.32rem;
+  color: var(--dim);
+}
+
+.state-error p {
+  font-size: 0.36rem;
+  color: var(--crit);
+  line-height: 2;
+}
+
+.state-error .error-detail {
+  font-size: 0.28rem;
+  color: var(--dim);
+  margin-top: 0.8rem;
+}
+
+/* ── EMPTY AGENT ── */
+.no-agent {
+  text-align: center;
+  padding: 2rem;
+}
+.no-agent p {
+  font-size: 0.36rem;
+  color: var(--dim);
+  line-height: 2.2;
+}
+.no-agent code {
+  color: var(--moon);
+  font-family: var(--px);
+}
+
+footer {
+  text-align: center;
+  padding: 1.2rem;
+  font-size: 0.28rem;
+  color: var(--dim);
+  position: relative; z-index: 1;
+}
+footer a { color: var(--dim); text-decoration: none; }
+footer a:hover { color: var(--moon); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">ARG<span>ENTUM</span></div>
+  <a href="https://argentum.rgiskard.xyz">← back</a>
+</nav>
+
+<main>
+  <div class="card" id="card">
+    <div class="state-loading" id="loading">
+      <div class="spinner"></div>
+      <p>loading usage…</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="https://argentum-api.rgiskard.xyz/docs">api docs</a>
+  &nbsp;·&nbsp;
+  <a href="https://argentum.rgiskard.xyz">argentum</a>
+</footer>
+
+<script>
+const API = 'https://argentum-api.rgiskard.xyz';
+
+function agentFromPath() {
+  // /dashboard/my-agent-001  →  "my-agent-001"
+  const parts = window.location.pathname.replace(/\/$/, '').split('/');
+  const idx = parts.indexOf('dashboard');
+  if (idx !== -1 && parts[idx + 1]) return decodeURIComponent(parts[idx + 1]);
+  // fallback: ?agent=...
+  return new URLSearchParams(window.location.search).get('agent') || '';
+}
+
+function statusLabel(s) {
+  if (s === 'critical') return 'Critical — approaching limit';
+  if (s === 'warning')  return 'Warning — 75 % used';
+  return 'OK — within limits';
+}
+
+function monthName(ym) {
+  // "2026-05"  →  "May 2026"
+  try {
+    const [y, m] = ym.split('-');
+    return new Date(+y, +m - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  } catch { return ym; }
+}
+
+function renderData(data) {
+  const pct    = Math.min(data.percent, 100);
+  const status = data.status;           // ok | warning | critical
+  const remaining = Math.max(0, data.limit - data.used);
+
+  return `
+    <div class="card-header">
+      <div class="label">agent</div>
+      <div class="agent-id">${escHtml(data.entity_id)}</div>
+    </div>
+
+    <div class="month-row">
+      <div class="month-label">period</div>
+      <div class="month-value">${escHtml(monthName(data.year_month))}</div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-numbers">
+        <div class="used-count">
+          ${data.used.toLocaleString()}<span>trails</span>
+        </div>
+        <div class="limit-count">/ ${data.limit.toLocaleString()}</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill ${status}" style="width:${pct}%"></div>
+      </div>
+      <div class="progress-pct">${pct.toFixed(1)} %</div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-dot ${status}"></div>
+      <div class="status-text ${status}">${statusLabel(status)}</div>
+    </div>
+
+    <div class="remaining-row">
+      <strong>${remaining.toLocaleString()}</strong> trails remaining this month
+    </div>
+
+    <div class="card-footer">
+      <a href="${API}/entity/${encodeURIComponent(data.entity_id)}/usage" target="_blank">raw json ↗</a>
+      <a href="${API}/trails?agent_id=${encodeURIComponent(data.entity_id)}" target="_blank">trail history ↗</a>
+    </div>
+  `;
+}
+
+function renderError(agentId, msg) {
+  return `
+    <div class="state-error">
+      <p>Could not load usage data.</p>
+      <p class="error-detail">${escHtml(msg)}</p>
+    </div>
+    <div class="card-footer">
+      <a href="${API}/entity/${encodeURIComponent(agentId)}/usage" target="_blank">try raw api ↗</a>
+    </div>
+  `;
+}
+
+function renderNoAgent() {
+  return `
+    <div class="no-agent">
+      <p>No agent specified.<br><br>
+      Try: <code>/dashboard/your-agent-id</code></p>
+    </div>
+  `;
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+async function main() {
+  const card    = document.getElementById('card');
+  const agentId = agentFromPath();
+
+  if (!agentId) {
+    card.innerHTML = renderNoAgent();
+    return;
+  }
+
+  document.title = `${agentId} — ARGENTUM usage`;
+
+  try {
+    const res = await fetch(`${API}/entity/${encodeURIComponent(agentId)}/usage`);
+    if (!res.ok) {
+      const txt = await res.text().catch(() => res.statusText);
+      card.innerHTML = renderError(agentId, `HTTP ${res.status}: ${txt}`);
+      return;
+    }
+    const data = await res.json();
+    card.innerHTML = renderData(data);
+  } catch (err) {
+    card.innerHTML = renderError(agentId, err.message || 'Network error');
+  }
+}
+
+main();
+</script>
+</body>
+</html>
