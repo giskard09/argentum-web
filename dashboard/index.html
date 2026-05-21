@@ -238,6 +238,16 @@ main {
   color: var(--silver);
 }
 
+/* ── TIER NOTE ── */
+.tier-note {
+  font-size: 0.28rem;
+  color: var(--ok);
+  text-align: center;
+  margin-top: 0.9rem;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}
+
 /* ── FOOTER LINKS ── */
 .card-footer {
   margin-top: 2rem;
@@ -404,6 +414,8 @@ function renderData(data) {
     <div class="remaining-row">
       <strong>${remaining.toLocaleString()}</strong> trails remaining this month
     </div>
+
+    <div class="tier-note">Free tier — 1,000 trails/month. No credit card required.</div>
 
     <div class="card-footer">
       <a href="${API}/entity/${encodeURIComponent(data.entity_id)}/usage" target="_blank">raw json ↗</a>
