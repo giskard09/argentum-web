@@ -980,8 +980,8 @@ footer {
     <button class="modal-close" onclick="closeDisputeModal()">✕</button>
     <div class="modal-title">⚖ dispute this action</div>
     <p style="font-size:0.3rem;color:var(--dim);line-height:2;margin-bottom:1rem">
-      Opens a Kleros arbitration case. Requires karma ≥ 10.<br>
-      Action is frozen until jurors rule. Ruling is final.
+      Opens a dispute on this action. Requires karma ≥ 10.<br>
+      The action is marked disputed until a ruling is posted. Arbitration through Kleros is designed, not deployed yet.
     </p>
     <form onsubmit="confirmDispute(event)">
       <input type="hidden" id="dispute-action-id">
@@ -1088,7 +1088,7 @@ function renderCard(a, showAttestBtn = false) {
           ? `<button class="attest-btn" style="color:var(--karma);border-color:rgba(232,200,96,0.4)" onclick="openDisputeModal('${a.id}')">dispute</button>`
           : ''}
         ${a.status === 'disputed'
-          ? `<span style="font-size:0.28rem;color:var(--karma)">⚖ kleros pending</span>`
+          ? `<span style="font-size:0.28rem;color:var(--karma)">⚖ disputed</span>`
           : ''}
       </div>
     </div>
@@ -1127,7 +1127,7 @@ async function loadCommons() {
     document.getElementById('commons-count').textContent = verified.length + ' actions';
 
     const disputedHtml = disputed.length
-      ? `<div class="section-title" style="color:var(--karma);margin-top:1.5rem">⚖ under kleros dispute</div>` +
+      ? `<div class="section-title" style="color:var(--karma);margin-top:1.5rem">⚖ disputed actions</div>` +
         disputed.map(a => renderCard(a, false)).join('')
       : '';
 
@@ -1248,7 +1248,7 @@ async function confirmDispute(e) {
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || 'error');
     closeDisputeModal();
-    toast(`dispute opened — id: ${d.dispute_id}. action frozen, awaiting kleros ruling.`, 5000);
+    toast(`dispute opened — id: ${d.dispute_id}. action marked disputed. no kleros case is opened yet.`, 5000);
     loadCommons();
   } catch(err) {
     toast('error: ' + err.message, 4000);
